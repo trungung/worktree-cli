@@ -1,30 +1,19 @@
 import { $ } from "bun";
 
-const PREPARE_MARKER_FILE = ".wt-prepared";
-
 export async function runPrepareCommand(
   worktreePath: string,
   command: string
 ): Promise<{ success: boolean; output: string }> {
-  const markerPath = `${worktreePath}/${PREPARE_MARKER_FILE}`;
-  const markerExists = await Bun.file(markerPath).exists();
-
-  if (markerExists) {
-    return { success: true, output: "" };
-  }
-
   try {
     // Run command in worktree and show output to user
     console.log(`→ Running: ${command}`);
-    const result = await $`sh -c ${`cd "${worktreePath}" && ${command}`}`;
+    const result = await $`sh -c ${`cd "${worktreePath}" && ${command}`}`.nothrow();
 
-    if (result.exitCode === 0) {
-      await Bun.write(markerPath, new Date().toISOString());
-    }
+    const output = result.stdout.toString().trim() || result.stderr.toString().trim();
 
     return {
       success: result.exitCode === 0,
-      output: result.stdout.toString().trim(),
+      output,
     };
   } catch (error: unknown) {
     return {

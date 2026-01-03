@@ -9,9 +9,10 @@ import {
   handleError,
   copyFilesToWorktree,
   runPrepareCommand,
+  promptSelect,
 } from "../utils";
 import { loadConfig, getWorktreePath } from "../config";
-import { getRepoInfo, getWorktrees } from "../git";
+import { getRepoInfo, getWorktrees, getBranches, branchExists } from "../git";
 import { $ } from "bun";
 
 const prCommand = defineCommand({
@@ -75,6 +76,25 @@ const prCommand = defineCommand({
         return;
       }
 
+      // Check if branch exists but no worktree
+      const branches = await getBranches();
+      const existence = branchExists(branches, branchName);
+      if (!existingWorktree && existence === "local") {
+        const action = await promptSelect(
+          `Branch '${branchName}' already exists locally but has no worktree.`,
+          [
+            { title: "Abort", value: "abort" },
+            { title: "Remove local branch and recreate", value: "recreate" },
+            { title: "Use existing branch", value: "use" },
+          ]
+        );
+
+        if (action === "abort") return;
+        if (action === "recreate") {
+          await $`git branch -D ${branchName}`.quiet();
+        }
+      }
+
       await validateTargetDirectoryNotExists(absoluteWorktreePath);
 
       // Fetch the PR branch using gh CLI
@@ -109,9 +129,9 @@ const prCommand = defineCommand({
 
           if (!success) {
             console.log(formatError(`Prepare command failed: ${cmd}`, output));
-          } else if (output) {
-            console.log(`✓ ${cmd} completed`);
+            return; // Stop on failure
           }
+          console.log(`✓ ${cmd} completed`);
         }
       }
 

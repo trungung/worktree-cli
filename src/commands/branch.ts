@@ -13,6 +13,7 @@ import {
   handleError,
   copyFilesToWorktree,
   runPrepareCommand,
+  promptSelect,
 } from "../utils";
 import {
   getHeadInfo,
@@ -69,28 +70,61 @@ const branchCommand = defineCommand({
       }
 
       const config = await loadConfig();
+      const repoInfo = await getRepoInfo();
 
       const headInfo = await getHeadInfo();
       const branches = await getBranches();
       const worktrees = await getWorktrees();
       const existence = branchExists(branches, branchName);
 
-      if (flags.from && existence !== "none") {
+      const existingWorktree = worktrees.find(
+        (w) => w.branchName === branchName
+      );
+
+      const worktreeRoot = getWorktreePath(repoInfo.rootPath, config.postfix);
+      const worktreeDirName = branchName.replace(/\//g, "-");
+      const absoluteWorktreePath = `${worktreeRoot}/${worktreeDirName}`;
+      const projectName = repoInfo.rootPath.split("/").pop() || "";
+      const relativeWorktreePath = `../${projectName}${config.postfix}/${worktreeDirName}`;
+
+      if (existingWorktree && existingWorktree.isAccessible) {
+        console.log(
+          formatSuccess(`Worktree ready: ${branchName}`, relativeWorktreePath)
+        );
+        return;
+      }
+
+      let branchExistence = existence;
+
+      if (existence === "local" && !existingWorktree) {
+        const action = await promptSelect(
+          `Branch '${branchName}' already exists locally but has no worktree.`,
+          [
+            { title: "Abort", value: "abort" },
+            { title: "Remove local branch and recreate", value: "recreate" },
+            { title: "Use existing branch", value: "use" },
+          ]
+        );
+
+        if (action === "abort") return;
+        if (action === "recreate") {
+          await $`git branch -D ${branchName}`.quiet();
+          branchExistence = "none";
+        }
+      }
+
+      if (flags.from && branchExistence !== "none") {
         console.log(
           formatWarning("Branch already exists", "Ignoring --from flag")
         );
       }
 
-      let finalBranch = branchName;
-      let branchExistence = existence;
-
-      if (existence === "none") {
+      if (branchExistence === "none") {
         const fromBranch = flags.from || headInfo.branchName || "HEAD";
         console.log(
           `Branch '${branchName}' does not exist, will create from ${fromBranch}`
         );
-        finalBranch = branchName;
-      } else if (existence === "remote") {
+      } else if (branchExistence === "remote") {
         console.log(`Branch '${branchName}' exists remotely, fetching...`);
 
         const remoteBranch = branches.remoteBranches.find((rb) => {
@@ -104,40 +138,20 @@ const branchCommand = defineCommand({
           // Create local tracking branch
           await $`git branch ${branchName} ${remoteBranch}`.quiet();
           branchExistence = "local";
-          finalBranch = branchName;
         }
       }
 
-      await validateBranchNotCheckedOut(finalBranch);
-
-      const repoInfo = await getRepoInfo();
-      const worktreeRoot = getWorktreePath(repoInfo.rootPath, config.postfix);
-      const worktreeDirName = finalBranch.replace(/\//g, "-");
-      const absoluteWorktreePath = `${worktreeRoot}/${worktreeDirName}`;
-      const projectName = repoInfo.rootPath.split("/").pop() || "";
-      const relativeWorktreePath = `../${projectName}${config.postfix}/${worktreeDirName}`;
-
-      const existingWorktree = worktrees.find(
-        (w) => w.branchName === finalBranch
-      );
-
-      if (existingWorktree && existingWorktree.isAccessible) {
-        console.log(
-          formatSuccess(`Worktree ready: ${finalBranch}`, relativeWorktreePath)
-        );
-        return;
-      }
-
+      await validateBranchNotCheckedOut(branchName);
       await validateTargetDirectoryNotExists(absoluteWorktreePath);
 
       // Create worktree with proper branch checkout
       if (branchExistence === "none") {
         // New branch: use -b flag to create and checkout
         const fromBranch = flags.from || "HEAD";
-        await $`git worktree add -b ${finalBranch} ${absoluteWorktreePath} ${fromBranch}`.quiet();
+        await $`git worktree add -b ${branchName} ${absoluteWorktreePath} ${fromBranch}`.quiet();
       } else {
         // Existing branch: just checkout
-        await $`git worktree add ${absoluteWorktreePath} ${finalBranch}`.quiet();
+        await $`git worktree add ${absoluteWorktreePath} ${branchName}`.quiet();
       }
 
       if (config.copyFiles && config.copyFiles.length > 0) {
@@ -161,18 +175,15 @@ const branchCommand = defineCommand({
           );
 
           if (!success) {
-            console.log(
-              formatWarning(`Prepare command failed: ${cmd}`, output)
-            );
-          } else if (output) {
-            // Only show output if command was actually run (not cached)
-            console.log(`✓ ${cmd} completed`);
+            console.log(formatError(`Prepare command failed: ${cmd}`, output));
+            return; // Stop on failure
           }
+          console.log(`✓ ${cmd} completed`);
         }
       }
 
       console.log(
-        formatSuccess(`Worktree ready: ${finalBranch}`, relativeWorktreePath)
+        formatSuccess(`Worktree ready: ${branchName}`, relativeWorktreePath)
       );
     } catch (error) {
       handleError(error);
