@@ -3,7 +3,7 @@ import { defineConfig } from '@bunli/core'
 export default defineConfig({
   name: '@trungung/wt',
   version: '0.1.0',
-  description: 'Zen Git Worktree Manager — Think branches, not paths',
+  description: 'A calm way to work with Git worktrees',
   
   commands: {
     directory: './src/commands'

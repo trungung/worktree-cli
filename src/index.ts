@@ -5,7 +5,7 @@ import { listWorktrees } from "./utils/list";
 const cli = await createCLI({
   name: "wt",
   version: "0.1.0",
-  description: "Zen Git Worktree Manager — Think branches, not paths",
+  description: "A calm way to work with Git worktrees",
 });
 
 // Auto-register all commands from .bunli/commands.gen.ts
