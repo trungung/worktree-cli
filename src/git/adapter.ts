@@ -116,7 +116,7 @@ export function normalizeBranch(branch: string): string {
 export async function getLocalBranches(): Promise<string[]> {
   const branches = await gitCommands.branchList(false);
   return branches
-    .map((b) => b.replace(/^\*?\s+/, ""))
+    .map((b) => b.replace(/^[\*\+]?\s+/, ""))
     .filter((b) => !b.includes("HEAD"));
 }
 
