@@ -1,10 +1,25 @@
 import { defineCommand } from '@bunli/core'
+import { 
+  validateInGitRepo, 
+  validateNotBareRepo,
+  validateWorktreeDirIgnored,
+  formatSuccess,
+  handleError
+} from '../utils'
 
 const initCommand = defineCommand({
   name: 'init',
   description: 'One-time setup for wt',
   handler: async () => {
-    console.log('✓ wt init - placeholder')
+    try {
+      await validateInGitRepo()
+      await validateNotBareRepo()
+      await validateWorktreeDirIgnored('.worktrees')
+      
+      console.log(formatSuccess('wt init - placeholder'))
+    } catch (error) {
+      handleError(error)
+    }
   }
 })
 

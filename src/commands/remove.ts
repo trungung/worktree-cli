@@ -1,5 +1,13 @@
 import { defineCommand, option } from '@bunli/core'
 import { z } from 'zod'
+import { 
+  validateInGitRepo, 
+  validateNotBareRepo,
+  formatError,
+  formatSuccess,
+  handleError
+} from '../utils'
+import { getWorktrees } from '../git'
 
 const removeCommand = defineCommand({
   name: 'remove',
@@ -14,12 +22,42 @@ const removeCommand = defineCommand({
     )
   },
   handler: async ({ positional, flags }) => {
-    const [branchName] = positional
-    if (!branchName) {
-      console.log('✗ Error: branch name required\n→ Usage: wt remove <branch>')
-      return
+    try {
+      await validateInGitRepo()
+      await validateNotBareRepo()
+      
+      const [branchName] = positional
+      if (!branchName) {
+        console.log(formatError('branch name required', 'Usage: wt remove <branch>'))
+        return
+      }
+      
+      const worktrees = await getWorktrees()
+      const targetWorktree = worktrees.find(w => w.branchName === branchName)
+      
+      if (!targetWorktree) {
+        console.log(formatError(
+          `No worktree found for branch: ${branchName}`,
+          'Use: wt list to see available worktrees'
+        ))
+        return
+      }
+      
+      if (targetWorktree.isMain) {
+        console.log(formatError(
+          'Cannot remove the main worktree',
+          'This is your primary checkout'
+        ))
+        return
+      }
+      
+      console.log(formatSuccess(
+        `wt remove ${branchName}${flags.branch ? ' --branch' : ''}`,
+        'placeholder'
+      ))
+    } catch (error) {
+      handleError(error)
     }
-    console.log(`✓ wt remove ${branchName}${flags.branch ? ' --branch' : ''} - placeholder`)
   }
 })
 

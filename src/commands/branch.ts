@@ -1,5 +1,17 @@
 import { defineCommand, option } from '@bunli/core'
 import { z } from 'zod'
+import { 
+  validateInGitRepo, 
+  validateNotBareRepo,
+  validateNotDetachedHEAD,
+  validateCleanWorkingTree,
+  validateBranchNotCheckedOut,
+  formatError,
+  formatSuccess,
+  formatWarning,
+  handleError
+} from '../utils'
+import { getHeadInfo, getBranches, branchExists } from '../git'
 
 const branchCommand = defineCommand({
   name: 'branch',
@@ -13,13 +25,40 @@ const branchCommand = defineCommand({
     )
   },
   handler: async ({ positional, flags }) => {
-    const [branchName] = positional
-    if (!branchName) {
-      console.log('✗ Error: branch name required\n→ Usage: wt <branch>')
-      return
+    try {
+      await validateInGitRepo()
+      await validateNotBareRepo()
+      await validateNotDetachedHEAD()
+      await validateCleanWorkingTree()
+      
+      const [branchName] = positional
+      if (!branchName) {
+        console.log(formatError('branch name required', 'Usage: wt <branch>'))
+        return
+      }
+      
+      const headInfo = await getHeadInfo()
+      const branches = await getBranches()
+      const existence = branchExists(branches, branchName)
+      
+      if (flags.from && existence !== 'none') {
+        console.log(formatWarning(
+          'Branch already exists',
+          'Ignoring --from flag'
+        ))
+      }
+      
+      await validateBranchNotCheckedOut(branchName)
+      
+      if (existence === 'none') {
+        console.log(`Branch '${branchName}' does not exist, will create from ${flags.from || headInfo.branchName || 'HEAD'}`)
+      }
+      
+      const fromStr = flags.from ? ` --from ${flags.from}` : ''
+      console.log(formatSuccess(`Worktree ready: ${branchName}`, '.worktrees/' + branchName + fromStr))
+    } catch (error) {
+      handleError(error)
     }
-    const fromStr = flags.from ? ` --from ${flags.from}` : ''
-    console.log(`✓ wt ${branchName}${fromStr} - placeholder`)
   }
 })
 

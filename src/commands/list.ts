@@ -1,10 +1,27 @@
 import { defineCommand } from '@bunli/core'
+import { 
+  validateInGitRepo, 
+  validateNotBareRepo,
+  formatSuccess,
+  handleError
+} from '../utils'
+import { getWorktrees } from '../git'
 
 const listCommand = defineCommand({
   name: 'list',
   description: 'List all worktrees',
   handler: async () => {
-    console.log('✓ wt list - placeholder')
+    try {
+      await validateInGitRepo()
+      await validateNotBareRepo()
+      
+      const worktrees = await getWorktrees()
+      
+      console.log(formatSuccess('wt list - placeholder'))
+      console.log(`Found ${worktrees.length} worktree(s)`)
+    } catch (error) {
+      handleError(error)
+    }
   }
 })
 
