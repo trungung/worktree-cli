@@ -6,12 +6,18 @@ import {
   validateNotDetachedHEAD,
   validateCleanWorkingTree,
   validateBranchNotCheckedOut,
+  validateWorktreeDirIgnored,
+  validateTargetDirectoryNotExists,
   formatError,
   formatSuccess,
   formatWarning,
-  handleError
+  handleError,
+  copyFilesToWorktree,
+  runPrepareCommand
 } from '../utils'
-import { getHeadInfo, getBranches, branchExists } from '../git'
+import { getHeadInfo, getBranches, branchExists, getWorktrees, getRepoInfo } from '../git'
+import { loadConfig } from '../config'
+import { $ } from 'bun'
 
 const branchCommand = defineCommand({
   name: 'branch',
@@ -37,8 +43,13 @@ const branchCommand = defineCommand({
         return
       }
       
+      const config = await loadConfig()
+      
+      await validateWorktreeDirIgnored(config.directory)
+      
       const headInfo = await getHeadInfo()
       const branches = await getBranches()
+      const worktrees = await getWorktrees()
       const existence = branchExists(branches, branchName)
       
       if (flags.from && existence !== 'none') {
@@ -48,14 +59,89 @@ const branchCommand = defineCommand({
         ))
       }
       
-      await validateBranchNotCheckedOut(branchName)
+      let finalBranch = branchName
+      let shouldCreateBranch = false
       
       if (existence === 'none') {
-        console.log(`Branch '${branchName}' does not exist, will create from ${flags.from || headInfo.branchName || 'HEAD'}`)
+        const fromBranch = flags.from || headInfo.branchName || 'HEAD'
+        console.log(`Branch '${branchName}' does not exist, creating from ${fromBranch}`)
+        
+        await $`git branch ${branchName} ${fromBranch}`.quiet()
+        shouldCreateBranch = true
+        finalBranch = branchName
+      } else if (existence === 'remote') {
+        console.log(`Branch '${branchName}' exists remotely, fetching...`)
+        
+        const remoteBranch = branches.remoteBranches.find(rb => {
+          const parts = rb.split('/')
+          const remoteBranchName = parts.slice(1).join('/')
+          return remoteBranchName === branchName
+        })
+        
+        if (remoteBranch) {
+          await $`git fetch ${remoteBranch.split('/')[0]}`.quiet()
+          await $`git branch ${branchName} ${remoteBranch}`.quiet()
+          shouldCreateBranch = true
+          finalBranch = branchName
+        }
       }
       
-      const fromStr = flags.from ? ` --from ${flags.from}` : ''
-      console.log(formatSuccess(`Worktree ready: ${branchName}`, '.worktrees/' + branchName + fromStr))
+      await validateBranchNotCheckedOut(finalBranch)
+      
+      const existingWorktree = worktrees.find(w => w.branchName === finalBranch)
+      const worktreePath = `${config.directory}/${finalBranch}`
+      
+      if (existingWorktree && existingWorktree.isAccessible) {
+        console.log(formatSuccess(
+          `Worktree ready: ${finalBranch}`,
+          worktreePath
+        ))
+        return
+      }
+      
+      const repoInfo = await getRepoInfo()
+      const absoluteWorktreePath = worktreePath.startsWith('/') 
+        ? worktreePath 
+        : `${repoInfo.rootPath}/${worktreePath}`
+      
+      await validateTargetDirectoryNotExists(absoluteWorktreePath)
+      
+      const createFromBranch = shouldCreateBranch ? finalBranch : flags.from || 'HEAD'
+      await $`git worktree add ${absoluteWorktreePath} ${createFromBranch}`.quiet()
+      
+      if (config.copyFiles && config.copyFiles.length > 0) {
+        const { copied } = await copyFilesToWorktree(
+          repoInfo.rootPath,
+          absoluteWorktreePath,
+          config.copyFiles
+        )
+        
+        if (copied.length > 0) {
+          console.log(`→ Copied files: ${copied.join(', ')}`)
+        }
+      }
+      
+      if (config.prepare && config.prepare.length > 0) {
+        for (const cmd of config.prepare) {
+          const { success, output } = await runPrepareCommand(
+            absoluteWorktreePath,
+            cmd
+          )
+          
+          if (!success) {
+            console.log(formatWarning(
+              `Prepare command failed: ${cmd}`,
+              output
+            ))
+          }
+        }
+      }
+      
+      console.log(formatSuccess(
+        `Worktree ready: ${finalBranch}`,
+        worktreePath
+      ))
+      
     } catch (error) {
       handleError(error)
     }
