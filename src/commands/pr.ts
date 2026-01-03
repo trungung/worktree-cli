@@ -21,14 +21,13 @@ const prCommand = defineCommand({
     try {
       await validateInGitRepo();
       await validateNotBareRepo();
+      await validateGhInstalled();
 
       const [prNumber] = positional;
       if (!prNumber) {
         console.log(formatError("PR number required", "Usage: wt pr <number>"));
         return;
       }
-
-      await validateGhInstalled();
 
       // Get PR branch name using gh CLI
       console.log(`Fetching PR #${prNumber}...`);
