@@ -6,19 +6,17 @@ import { createGeneratedHelpers, registerGeneratedStore } from '@bunli/core'
 
 import Branch from '../src/commands/branch.js'
 import Init from '../src/commands/init.js'
-import List from '../src/commands/list.js'
 import Pr from '../src/commands/pr.js'
 import Prune from '../src/commands/prune.js'
 import Remove from '../src/commands/remove.js'
 
 // Narrow list of command names to avoid typeof-cycles in types
-const names = ['branch', 'init', 'list', 'pr', 'prune', 'remove'] as const
+const names = ['branch', 'init', 'pr', 'prune', 'remove'] as const
 type GeneratedNames = typeof names[number]
 
 const modules: Record<GeneratedNames, Command<any>> = {
   'branch': Branch,
   'init': Init,
-  'list': List,
   'pr': Pr,
   'prune': Prune,
   'remove': Remove
@@ -37,11 +35,6 @@ const metadata: Record<GeneratedNames, GeneratedCommandMeta> = {
       name: 'init',
       description: 'One-time setup for wt',
       path: '../src/commands/init'
-    },
-  'list': {
-      name: 'list',
-      description: 'List all worktrees',
-      path: '../src/commands/list'
     },
   'pr': {
       name: 'pr',

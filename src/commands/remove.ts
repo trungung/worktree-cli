@@ -54,7 +54,7 @@ const removeCommand = defineCommand({
         console.log(
           formatError(
             `No worktree found for: ${branchName}`,
-            "Use: wt list to see available worktrees"
+            "Use: wt to see available worktrees"
           )
         );
         return;
