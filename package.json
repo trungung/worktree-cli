@@ -45,6 +45,9 @@
     "@types/bun": "latest",
     "@types/prompts": "^2.4.9",
     "bunli": "latest",
-    "typescript": "^5.0.0"
+    "oxfmt": "^0.21.0",
+    "oxlint": "^1.36.0",
+    "typescript": "^5.0.0",
+    "ultracite": "7.0.6"
   }
 }
