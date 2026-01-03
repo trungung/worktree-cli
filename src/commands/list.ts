@@ -57,9 +57,8 @@ const listCommand = defineCommand({
             config.postfix
           );
           if (path.startsWith(worktreeRoot)) {
-            displayPath = `../${projectName}${config.postfix}/${path
-              .split("/")
-              .pop()}`;
+            const relativeToRoot = path.substring(worktreeRoot.length).replace(/^\//, "");
+            displayPath = `../${projectName}${config.postfix}/${relativeToRoot}`;
           }
         }
 

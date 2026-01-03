@@ -107,9 +107,10 @@ const branchCommand = defineCommand({
 
       const repoInfo = await getRepoInfo();
       const worktreeRoot = getWorktreePath(repoInfo.rootPath, config.postfix);
-      const absoluteWorktreePath = `${worktreeRoot}/${finalBranch}`;
+      const worktreeDirName = finalBranch.replace(/\//g, "-");
+      const absoluteWorktreePath = `${worktreeRoot}/${worktreeDirName}`;
       const projectName = repoInfo.rootPath.split("/").pop() || "";
-      const relativeWorktreePath = `../${projectName}${config.postfix}/${finalBranch}`;
+      const relativeWorktreePath = `../${projectName}${config.postfix}/${worktreeDirName}`;
 
       const existingWorktree = worktrees.find(
         (w) => w.branchName === finalBranch
