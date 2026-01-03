@@ -1,16 +1,23 @@
 {
-  "name": "worktree-cli",
+  "name": "@trungung/wt",
   "version": "0.1.0",
   "type": "module",
   "description": "A CLI built with Bunli",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "",
   "bin": {
-    "wt": "./dist/index.js"
+    "wt": "dist/index.js"
   },
   "scripts": {
     "postinstall": "bunli generate",
     "dev": "bun run src/index.ts",
-    "build": "bunli build",
+    "build": "bunli build && bun build src/index.ts --outfile dist/index.js --target bun --format esm --minify",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },

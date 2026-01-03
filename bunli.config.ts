@@ -1,9 +1,9 @@
 import { defineConfig } from '@bunli/core'
 
 export default defineConfig({
-  name: 'worktree-cli',
+  name: '@trungung/wt',
   version: '0.1.0',
-  description: 'A CLI built with Bunli',
+  description: 'Zen Git Worktree Manager — Think branches, not paths',
   
   commands: {
     directory: './src/commands'
