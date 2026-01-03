@@ -47,7 +47,7 @@ const pruneCommand = defineCommand({
           const reason = !wt.isAccessible ? 'missing' : 'upstream deleted'
           console.log(`  - ${wt.branchName} (${reason})`)
         }
-        console.log('\nRun: wtree prune --apply')
+        console.log('\nRun: wt prune --apply')
       } else {
         for (const wt of staleWorktrees) {
           console.log(formatSuccess(`Removed worktree: ${wt.branchName}`))

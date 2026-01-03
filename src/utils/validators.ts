@@ -1,5 +1,6 @@
 import { getRepoInfo, getHeadInfo, getWorktrees, isBranchCheckedOut } from '../git'
 import { WtError, WtWarning } from './errors'
+import * as fs from 'fs'
 
 export async function validateInGitRepo(): Promise<void> {
   try {
@@ -59,58 +60,9 @@ export async function validateNoOngoingMerge(): Promise<void> {
   }
 }
 
-export async function validateWorktreeDirIgnored(worktreeDir: string): Promise<void> {
-  const { formatWarning } = await import('./errors')
-  
-  try {
-    const gitignorePath = '.gitignore'
-    const gitignoreExists = await Bun.file(gitignorePath).exists()
-    
-    if (!gitignoreExists) {
-      console.log(formatWarning(
-        `${worktreeDir}/ is not ignored`,
-        'Add it to .gitignore'
-      ))
-      return
-    }
-
-    const gitignoreContent = await Bun.file(gitignorePath).text()
-    const normalizedDir = worktreeDir.replace(/^\//, '')
-    const ignoredPatterns = gitignoreContent
-      .split('\n')
-      .filter(line => line.trim() && !line.startsWith('#'))
-      .map(line => line.trim())
-    
-    const isIgnored = ignoredPatterns.some(pattern => {
-      if (pattern === normalizedDir) return true
-      if (pattern.startsWith(normalizedDir + '/')) return true
-      if (pattern.endsWith('/**')) {
-        const base = pattern.slice(0, -3)
-        if (normalizedDir.startsWith(base)) return true
-      }
-      return false
-    })
-
-    if (!isIgnored) {
-      console.log(formatWarning(
-        `${worktreeDir}/ is not ignored`,
-        'Add it to .gitignore'
-      ))
-    }
-  } catch {
-    console.log(formatWarning(
-      `${worktreeDir}/ is not ignored`,
-      'Add it to .gitignore'
-    ))
-  }
-}
-
 export async function validateTargetDirectoryNotExists(targetPath: string): Promise<void> {
-  const { existsSync } = await import('fs')
-  const { statSync } = await import('fs')
-  
   try {
-    const stat = statSync(targetPath)
+    const stat = fs.statSync(targetPath)
     if (stat.isDirectory()) {
       throw new WtError(
         'Target directory already exists',

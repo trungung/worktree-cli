@@ -7,6 +7,8 @@ import {
   formatSuccess,
   handleError
 } from '../utils'
+import { loadConfig } from '../config'
+import { getRepoInfo } from '../git'
 
 const prCommand = defineCommand({
   name: 'pr',
@@ -18,13 +20,17 @@ const prCommand = defineCommand({
       
       const [prNumber] = positional
       if (!prNumber) {
-        console.log(formatError('PR number required', 'Usage: wtree pr <number>'))
+        console.log(formatError('PR number required', 'Usage: wt pr <number>'))
         return
       }
       
       await validateGhInstalled()
       
-      console.log(formatSuccess(`Worktree ready: pr/${prNumber}`, '.worktrees/pr-' + prNumber))
+      const config = await loadConfig()
+      const repoInfo = await getRepoInfo()
+      const projectName = repoInfo.rootPath.split('/').pop() || ''
+      
+      console.log(formatSuccess(`Worktree ready: pr/${prNumber}`, `../${projectName}${config.postfix}/pr-${prNumber}`))
     } catch (error) {
       handleError(error)
     }

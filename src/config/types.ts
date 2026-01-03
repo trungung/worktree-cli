@@ -1,11 +1,11 @@
 export interface WtConfig {
-  directory: string
+  postfix: string
   copyFiles: string[]
   prepare: string[]
 }
 
 export const DEFAULT_CONFIG: WtConfig = {
-  directory: '.worktrees',
+  postfix: '.worktrees',
   copyFiles: [],
   prepare: []
 }

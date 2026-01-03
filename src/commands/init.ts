@@ -13,13 +13,12 @@ import { getRepoInfo } from '../git'
 
 const initCommand = defineCommand({
   name: 'init',
-  description: 'One-time setup for wtree',
+  description: 'One-time setup for wt',
   handler: async () => {
     try {
       await validateInGitRepo()
       await validateNotBareRepo()
       
-      const repoInfo = await getRepoInfo()
       const configExists = await Bun.file(CONFIG_FILE).exists()
       
       let config: WtConfig = { ...DEFAULT_CONFIG }
@@ -29,8 +28,8 @@ const initCommand = defineCommand({
         config = { ...DEFAULT_CONFIG, ...existingConfig }
         
         console.log(formatWarning(
-          'wtree is already configured',
-          `Current directory: ${config.directory}`
+          'wt is already configured',
+          `Current postfix: ${config.postfix}`
         ))
         
         const shouldReconfigure = await promptConfirm('Do you want to reconfigure?', false)
@@ -40,62 +39,37 @@ const initCommand = defineCommand({
         }
       }
       
-      console.log('\nWelcome to wtree! Let’s configure your worktree setup.\n')
+      console.log('\nWelcome to wt! Let’s configure your worktree setup.\n')
       
-      const directory = await promptText(
-        'Where should worktrees live?',
-        config.directory
+      const postfix = await promptText(
+        'What postfix for worktree directory?',
+        config.postfix
       )
       
-      const gitignorePath = '.gitignore'
-      let gitignoreContent = ''
-      
-      const gitignoreExists = await Bun.file(gitignorePath).exists()
-      if (gitignoreExists) {
-        gitignoreContent = await Bun.file(gitignorePath).text()
-      }
-      
-      const normalizedDir = directory.replace(/^\//, '')
-      const patterns = [normalizedDir, `${normalizedDir}/`]
-      
-      const needsUpdate = !patterns.some(p => gitignoreContent.includes(p))
-      
-      if (needsUpdate) {
-        if (gitignoreContent && !gitignoreContent.endsWith('\n')) {
-          gitignoreContent += '\n'
-        }
-        gitignoreContent += `\n# wtree worktrees\n${normalizedDir}/\n`
-        await Bun.write(gitignorePath, gitignoreContent)
-      }
-      
-      const gitignoreUpdated = needsUpdate
-      
       const newConfig: WtConfig = {
-        directory,
+        postfix,
         copyFiles: [],
         prepare: []
       }
       
       await Bun.write(CONFIG_FILE, JSON.stringify(newConfig, null, 2))
       
-      const dirPath = directory.startsWith('/') ? directory : `${repoInfo.rootPath}/${directory}`
-      await Bun.$`mkdir -p ${dirPath}`.quiet().nothrow()
+      console.log('\n' + formatSuccess('wt initialized!'))
       
-      console.log('\n' + formatSuccess('wtree initialized!'))
+      const repoInfo = await getRepoInfo()
+      const projectName = repoInfo.rootPath.split('/').pop() || ''
       
       console.log('\nSummary:')
-      console.log(`  Directory: ${directory}`)
+      console.log(`  Postfix: ${postfix}`)
+      console.log(`  Worktrees location: ${projectName}${postfix}/ (sibling directory)`)
       console.log(`  Config: ${CONFIG_FILE}`)
-      if (gitignoreUpdated) {
-        console.log(`  .gitignore: ${directory}/ added (best practice for git worktrees)`)
-      }
       
-      console.log('\n💡 Tip: You can safely commit wt.config.json and .gitignore')
+      console.log('\n💡 Tip: Worktrees are stored outside your repo (no .gitignore needed)')
       
       console.log('\nWhat next:')
       console.log(`  1. Edit ${CONFIG_FILE}  Configure copyFiles and prepare`)
-      console.log(`  2. wtree <branch>        Create or switch to a worktree`)
-      console.log(`  3. wtree --help          See all commands`)
+      console.log(`  2. wt <branch>        Create or switch to a worktree`)
+      console.log(`  3. wt --help          See all commands`)
       
     } catch (error) {
       handleError(error)

@@ -6,7 +6,6 @@ import {
   validateNotDetachedHEAD,
   validateCleanWorkingTree,
   validateBranchNotCheckedOut,
-  validateWorktreeDirIgnored,
   validateTargetDirectoryNotExists,
   formatError,
   formatSuccess,
@@ -16,7 +15,7 @@ import {
   runPrepareCommand
 } from '../utils'
 import { getHeadInfo, getBranches, branchExists, getWorktrees, getRepoInfo } from '../git'
-import { loadConfig } from '../config'
+import { loadConfig, getWorktreePath } from '../config'
 import { $ } from 'bun'
 
 const branchCommand = defineCommand({
@@ -39,13 +38,11 @@ const branchCommand = defineCommand({
       
       const [branchName] = positional
       if (!branchName) {
-        console.log(formatError('branch name required', 'Usage: wtree <branch>'))
+        console.log(formatError('branch name required', 'Usage: wt <branch>'))
         return
       }
       
       const config = await loadConfig()
-      
-      await validateWorktreeDirIgnored(config.directory)
       
       const headInfo = await getHeadInfo()
       const branches = await getBranches()
@@ -88,21 +85,21 @@ const branchCommand = defineCommand({
       
       await validateBranchNotCheckedOut(finalBranch)
       
+      const repoInfo = await getRepoInfo()
+      const worktreeRoot = getWorktreePath(repoInfo.rootPath, config.postfix)
+      const absoluteWorktreePath = `${worktreeRoot}/${finalBranch}`
+      const projectName = repoInfo.rootPath.split('/').pop() || ''
+      const relativeWorktreePath = `../${projectName}${config.postfix}/${finalBranch}`
+      
       const existingWorktree = worktrees.find(w => w.branchName === finalBranch)
-      const worktreePath = `${config.directory}/${finalBranch}`
       
       if (existingWorktree && existingWorktree.isAccessible) {
         console.log(formatSuccess(
           `Worktree ready: ${finalBranch}`,
-          worktreePath
+          relativeWorktreePath
         ))
         return
       }
-      
-      const repoInfo = await getRepoInfo()
-      const absoluteWorktreePath = worktreePath.startsWith('/') 
-        ? worktreePath 
-        : `${repoInfo.rootPath}/${worktreePath}`
       
       await validateTargetDirectoryNotExists(absoluteWorktreePath)
       
@@ -139,7 +136,7 @@ const branchCommand = defineCommand({
       
       console.log(formatSuccess(
         `Worktree ready: ${finalBranch}`,
-        worktreePath
+        relativeWorktreePath
       ))
       
     } catch (error) {
