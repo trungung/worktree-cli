@@ -5,8 +5,7 @@
   "description": "A CLI built with Bunli",
   "author": "",
   "bin": {
-    "wtree": "./dist/index.js",
-    "worktree-cli": "./dist/index.js"
+    "wt": "./dist/index.js"
   },
   "scripts": {
     "postinstall": "bunli generate",
