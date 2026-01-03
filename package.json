@@ -2,8 +2,20 @@
   "name": "@trungung/wt",
   "version": "0.1.0",
   "type": "module",
-  "description": "A CLI built with Bunli",
+  "description": "Zen Git Worktree Manager — Think branches, not paths",
   "main": "./dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trungung/worktree-cli.git"
+  },
+  "keywords": [
+    "git",
+    "worktree",
+    "cli",
+    "workflow",
+    "bun"
+  ],
+  "license": "MIT",
   "files": [
     "dist"
   ],
@@ -17,7 +29,9 @@
   "scripts": {
     "postinstall": "bunli generate",
     "dev": "bun run src/index.ts",
-    "build": "bunli build && bun build src/index.ts --outfile dist/index.js --target bun --format esm --minify",
+    "generate": "bunli generate",
+    "build": "bunli build",
+    "release": "bunli release",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },
@@ -32,9 +46,5 @@
     "@types/prompts": "^2.4.9",
     "bunli": "latest",
     "typescript": "^5.0.0"
-  },
-  "bunli": {
-    "entry": "./src/index.ts",
-    "outDir": "./dist"
   }
 }

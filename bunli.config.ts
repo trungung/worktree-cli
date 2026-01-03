@@ -12,10 +12,18 @@ export default defineConfig({
   build: {
     entry: './src/index.ts',
     outdir: './dist',
-    targets: ['native'],
+    targets: [],
     minify: true,
     sourcemap: true,
     compress: false
+  },
+
+
+  release: {
+    npm: true,
+    github: true,
+    tagFormat: 'v${version}',
+    conventionalCommits: true
   },
   
   dev: {

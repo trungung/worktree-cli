@@ -1,9 +1,6 @@
 # Dependencies
 node_modules/
 
-# Bunli build output
-.bunli/
-
 # Build output
 dist/
 

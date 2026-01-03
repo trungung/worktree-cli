@@ -1,11 +1,5 @@
-#!/usr/bin/env bun
 import { createCLI } from "@bunli/core";
-import initCommand from "./commands/init.js";
-import listCommand from "./commands/list.js";
-import removeCommand from "./commands/remove.js";
-import pruneCommand from "./commands/prune.js";
-import branchCommand from "./commands/branch.js";
-import prCommand from "./commands/pr.js";
+import { cli as generatedCli } from "../.bunli/commands.gen.js";
 
 const cli = await createCLI({
   name: "wt",
@@ -13,14 +7,10 @@ const cli = await createCLI({
   description: "Zen Git Worktree Manager — Think branches, not paths",
 });
 
-cli.command(initCommand);
-cli.command(listCommand);
-cli.command(removeCommand);
-cli.command(pruneCommand);
-cli.command(prCommand);
-cli.command(branchCommand);
+// Auto-register all commands from .bunli/commands.gen.ts
+generatedCli.register(cli);
 
-const knownCommands = ["init", "list", "remove", "prune", "pr", "branch"];
+const knownCommands = generatedCli.list().map((c) => c.name);
 
 function preprocessArgs(args: string[]): string[] {
   if (args.length === 0) return args;
@@ -40,7 +30,7 @@ function preprocessArgs(args: string[]): string[] {
     return args;
   }
 
-  if (!knownCommands.includes(firstArg)) {
+  if (!(knownCommands as string[]).includes(firstArg)) {
     return ["branch", ...args];
   }
 

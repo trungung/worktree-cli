@@ -11,9 +11,8 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "./dist",
-    "rootDir": "./src",
     "types": ["bun"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", ".bunli/**/*"],
   "exclude": ["node_modules", "dist", "test/**/*"]
 }

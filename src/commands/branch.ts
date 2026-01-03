@@ -46,13 +46,18 @@ const branchCommand = defineCommand({
       }
 
       // Validate branch name (git branch name rules)
+      const hasInvalidChars = branchName.split('').some(char => {
+        const code = char.charCodeAt(0);
+        return code <= 32 || code === 127 || "~^:?*[".includes(char);
+      });
+
       if (
         branchName.includes("..") ||
         branchName.startsWith("/") ||
         branchName.endsWith("/") ||
         branchName.includes("//") ||
         branchName.endsWith(".lock") ||
-        /[\x00-\x1f\x7f ~^:?*\[]/.test(branchName)
+        hasInvalidChars
       ) {
         console.log(
           formatError(
