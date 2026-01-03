@@ -71,6 +71,7 @@ const removeCommand = defineCommand({
       }
 
       // Check if worktree has uncommitted changes
+      let shouldForceRemove = flags.force;
       if (targetWorktree.isAccessible && !flags.force) {
         try {
           const result =
@@ -93,6 +94,8 @@ const removeCommand = defineCommand({
               console.log("Removal cancelled");
               return;
             }
+            // User confirmed, so we need to force the removal
+            shouldForceRemove = true;
           }
         } catch {
           // Continue with removal if status check fails
@@ -101,7 +104,7 @@ const removeCommand = defineCommand({
 
       // Remove the worktree
       try {
-        if (flags.force) {
+        if (shouldForceRemove) {
           await $`git worktree remove --force ${targetWorktree.path}`.quiet();
         } else {
           await $`git worktree remove ${targetWorktree.path}`.quiet();
