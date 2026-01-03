@@ -14,9 +14,9 @@ export async function runPrepareCommand(
   }
 
   try {
-    // Run command in worktree using git -C to avoid shell injection
-    const result =
-      await $`sh -c ${`cd "${worktreePath}" && ${command}`}`.quiet();
+    // Run command in worktree and show output to user
+    console.log(`→ Running: ${command}`);
+    const result = await $`sh -c ${`cd "${worktreePath}" && ${command}`}`;
 
     if (result.exitCode === 0) {
       await Bun.write(markerPath, new Date().toISOString());

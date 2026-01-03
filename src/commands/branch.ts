@@ -147,6 +147,7 @@ const branchCommand = defineCommand({
       }
 
       if (config.prepare && config.prepare.length > 0) {
+        console.log(`\n→ Running prepare commands...`);
         for (const cmd of config.prepare) {
           const { success, output } = await runPrepareCommand(
             absoluteWorktreePath,
@@ -157,6 +158,9 @@ const branchCommand = defineCommand({
             console.log(
               formatWarning(`Prepare command failed: ${cmd}`, output)
             );
+          } else if (output) {
+            // Only show output if command was actually run (not cached)
+            console.log(`✓ ${cmd} completed`);
           }
         }
       }

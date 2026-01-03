@@ -1,0 +1,9 @@
+{
+  "postfix": ".worktrees",
+  "copyFiles": [
+    ".env*"
+  ],
+  "prepare": [
+    "bun install"
+  ]
+}
