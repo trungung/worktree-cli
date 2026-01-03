@@ -5,7 +5,7 @@
   "description": "A CLI built with Bunli",
   "author": "",
   "bin": {
-    "wt": "./dist/index.js",
+    "wtree": "./dist/index.js",
     "worktree-cli": "./dist/index.js"
   },
   "scripts": {
@@ -16,11 +16,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@bunli/core": "latest"
+    "@bunli/core": "latest",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@bunli/test": "latest",
     "@types/bun": "latest",
+    "@types/prompts": "^2.4.9",
     "bunli": "latest",
     "typescript": "^5.0.0"
   },

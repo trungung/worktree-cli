@@ -18,7 +18,7 @@ const prCommand = defineCommand({
       
       const [prNumber] = positional
       if (!prNumber) {
-        console.log(formatError('PR number required', 'Usage: wt pr <number>'))
+        console.log(formatError('PR number required', 'Usage: wtree pr <number>'))
         return
       }
       

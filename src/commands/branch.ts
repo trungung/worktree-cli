@@ -33,7 +33,7 @@ const branchCommand = defineCommand({
       
       const [branchName] = positional
       if (!branchName) {
-        console.log(formatError('branch name required', 'Usage: wt <branch>'))
+        console.log(formatError('branch name required', 'Usage: wtree <branch>'))
         return
       }
       

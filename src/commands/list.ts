@@ -17,7 +17,7 @@ const listCommand = defineCommand({
       
       const worktrees = await getWorktrees()
       
-      console.log(formatSuccess('wt list - placeholder'))
+      console.log(formatSuccess('wtree list - placeholder'))
       console.log(`Found ${worktrees.length} worktree(s)`)
     } catch (error) {
       handleError(error)

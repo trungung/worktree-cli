@@ -28,7 +28,7 @@ const removeCommand = defineCommand({
       
       const [branchName] = positional
       if (!branchName) {
-        console.log(formatError('branch name required', 'Usage: wt remove <branch>'))
+        console.log(formatError('branch name required', 'Usage: wtree remove <branch>'))
         return
       }
       
@@ -38,7 +38,7 @@ const removeCommand = defineCommand({
       if (!targetWorktree) {
         console.log(formatError(
           `No worktree found for branch: ${branchName}`,
-          'Use: wt list to see available worktrees'
+          'Use: wtree list to see available worktrees'
         ))
         return
       }
@@ -51,10 +51,10 @@ const removeCommand = defineCommand({
         return
       }
       
-      console.log(formatSuccess(
-        `wt remove ${branchName}${flags.branch ? ' --branch' : ''}`,
-        'placeholder'
-      ))
+        console.log(formatSuccess(
+          `wtree remove ${branchName}${flags.branch ? ' --branch' : ''}`,
+          'placeholder'
+        ))
     } catch (error) {
       handleError(error)
     }

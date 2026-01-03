@@ -8,7 +8,7 @@ import branchCommand from './commands/branch.js'
 import prCommand from './commands/pr.js'
 
 const cli = await createCLI({
-  name: 'wt',
+  name: 'wtree',
   version: '0.1.0',
   description: 'Zen Git Worktree Manager — Think branches, not paths'
 })
