@@ -1,5 +1,5 @@
 import { getRepoInfo, getHeadInfo, getWorktrees, isBranchCheckedOut } from '../git'
-import { WtError, WtWarning } from './errors'
+import { WtError, WtWarning, formatWarning } from './errors'
 import * as fs from 'fs'
 
 export async function validateInGitRepo(): Promise<void> {
@@ -33,10 +33,10 @@ export async function validateNotDetachedHEAD(): Promise<void> {
 export async function validateCleanWorkingTree(): Promise<void> {
   const headInfo = await getHeadInfo()
   if (headInfo.isDirty) {
-    throw new WtError(
+    console.log(formatWarning(
       'Working tree has uncommitted changes',
-      'Commit, stash, or rerun with --force'
-    )
+      'Changes will not carry over to the new worktree'
+    ))
   }
 }
 
