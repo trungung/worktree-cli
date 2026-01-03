@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Bunli build output
+.bunli/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/  
