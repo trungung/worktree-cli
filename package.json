@@ -2,7 +2,7 @@
   "name": "@trungung/wt",
   "version": "0.1.0",
   "type": "module",
-  "description": "Zen Git Worktree Manager — Think branches, not paths",
+  "description": "A calm way to work with Git worktrees",
   "main": "./dist/index.js",
   "repository": {
     "type": "git",
