@@ -1,5 +1,6 @@
 import { createCLI } from "@bunli/core";
 import { cli as generatedCli } from "../.bunli/commands.gen.js";
+import { listWorktrees } from "./utils/list";
 
 const cli = await createCLI({
   name: "wt",
@@ -37,5 +38,12 @@ function preprocessArgs(args: string[]): string[] {
   return args;
 }
 
-const processedArgs = preprocessArgs(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+
+if (rawArgs.length === 0) {
+  await listWorktrees();
+  process.exit(0);
+}
+
+const processedArgs = preprocessArgs(rawArgs);
 await cli.run(processedArgs);

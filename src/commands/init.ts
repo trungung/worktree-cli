@@ -145,7 +145,7 @@ const initCommand = defineCommand({
 
       console.log("\nWhat next:");
       console.log(`  1. wt <branch>        Create or switch to a worktree`);
-      console.log(`  2. wt list            See all worktrees`);
+      console.log(`  2. wt                 See all worktrees`);
       console.log(`  3. wt --help          See all commands`);
     } catch (error) {
       handleError(error);
